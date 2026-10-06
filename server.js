@@ -53,4 +53,4 @@ function apiRequest(handle) {
       (res) => {
         let data = "";
 
-        res.setEncoding("utf
+        res.setEncoding("utf8");
