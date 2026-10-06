@@ -15,42 +15,33 @@ function parseTransferUrl(raw) {
   }
 
   const parts = u.pathname.split("/").filter(Boolean);
-  const index = parts.indexOf("t");
+  const i = parts.indexOf("t");
 
-  if (index === -1 || !parts[index + 1]) {
+  if (i < 0 || !parts[i + 1]) {
     throw new Error("Invalid transfer.it link");
   }
 
-  return parts[index + 1];
+  return parts[i + 1];
 }
 
 function apiRequest(handle) {
   return new Promise((resolve, reject) => {
-    const query =
-      "?id=" +
+    const body = JSON.stringify([
+      { a: "f", c: 1, r: 1 }
+    ]);
+
+    const url =
+      API +
+      "/cs?id=" +
       Date.now() +
       "&x=" +
       encodeURIComponent(handle);
 
-    const body = JSON.stringify([
-      {
-        a: "f",
-        c: 1,
-        r: 1
-      }
-    ]);
-
     const req = https.request(
-      API + "/cs" + query,
+      url,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(body),
-          "User-Agent": "Mozilla/5.0"
-        }
-      },
-      (res) => {
-        let data = "";
-
-        res.setEncoding("utf8");
+          "User-Agent": "Mozilla/5.0
