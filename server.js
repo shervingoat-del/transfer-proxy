@@ -30,4 +30,36 @@ const server = http.createServer((req, res) => {
     },
     (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400) {
-        const location =
+        const location = response.headers.location;
+
+        if (location) {
+          res.writeHead(302, {
+            Location: location
+          });
+          res.end();
+          response.resume();
+          return;
+        }
+      }
+
+      res.writeHead(502);
+      res.end(
+        "MEGA did not return a download URL. Status: " +
+          response.statusCode
+      );
+
+      response.resume();
+    }
+  );
+
+  request.on("error", (error) => {
+    res.writeHead(502);
+    res.end(error.message);
+  });
+});
+
+const port = process.env.PORT || 3000;
+
+server.listen(port, "0.0.0.0", () => {
+  console.log("Server running on port " + port);
+});
