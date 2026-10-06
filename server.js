@@ -40,35 +40,49 @@ function decryptNodeName(node) {
   }
 
   try {
-    const encrypted = base64UrlDecode(node.a);
+    const attributes = base64UrlDecode(node.a);
     const key = base64UrlDecode(node.k);
 
-    if (encrypted.length === 0 || key.length < 16) {
+    if (attributes.length === 0 || key.length < 16) {
       return node.h;
     }
 
+    const aesKey = Buffer.alloc(16);
+
+    for (let i = 0; i < 16; i++) {
+      aesKey[i] =
+        key[i] ^
+        key[i + 16] ^
+        key[i + 32] ^
+        key[i + 48];
+    }
+
     const decipher = crypto.createDecipheriv(
-      "aes-128-ecb",
-      key.subarray(0, 16),
-      null
+      "aes-128-cbc",
+      aesKey,
+      Buffer.alloc(16)
     );
 
     decipher.setAutoPadding(false);
 
-    let data = Buffer.concat([
-      decipher.update(encrypted),
+    const decrypted = Buffer.concat([
+      decipher.update(attributes),
       decipher.final()
     ]);
 
-    data = data.toString("utf8").replace(/\0+$/, "");
+    const text = decrypted
+      .toString("utf8")
+      .replace(/\0+$/, "");
 
-    if (data.startsWith("MEGA")) {
-      const json = data.slice(4);
-      const attributes = JSON.parse(json);
+    if (!text.startsWith("MEGA{")) {
+      return node.h;
+    }
 
-      if (attributes.n) {
-        return attributes.n;
-      }
+    const json = text.slice(4);
+    const parsed = JSON.parse(json);
+
+    if (parsed.n) {
+      return parsed.n;
     }
   } catch (error) {
     return node.h;
