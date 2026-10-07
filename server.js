@@ -233,7 +233,7 @@ function getRedirect(downloadUrl, handle) {
     req.end();
   });
 }
-const PART_SIZE = 1900000000;
+
 const server = http.createServer(async (req, res) => {
   try {
     const requestUrl = new URL(
